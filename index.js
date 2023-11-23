@@ -31,9 +31,32 @@ async function run() {
     const userCollection=client.db("bistroDb").collection("users");
 
     // storing users
+    app.patch('/users/admin/:id',
+    async(req,res)=>{
+      const id=req.params.id;
+      const filter={_id:new ObjectId(id)};
+      const updatedDoc={ 
+        $set:{
+          role:'admin' 
+        }
+      }
+      const result=await userCollection.updateOne(filter,updatedDoc);
+      res.send(result);
+      
+    })
+    app.get('/users',async(req,res)=>{
+      const result=await userCollection.find();
+      const data=await result.toArray();
+      res.send(data);
+    })
+    app.delete('/users/:id',async(req,res)=>{
+      const id=req.params.id;
+      const result=await userCollection.deleteOne({_id:new ObjectId(id)});
+      res.send(result);
+    })
     app.post('/users',async(req,res)=>{
       const user=req.body;
-      // if user exists dont insert data in database
+      // if user exists don't insert data in database
       const query={email:user.email};
       const existingUser=await userCollection.findOne(query);
       if(existingUser){
@@ -42,6 +65,10 @@ async function run() {
       const result=await userCollection.insertOne(user);
       res.send(result);
     })
+
+
+
+    // menu
     app.get('/menu',async(req,res)=>{
 
         const request = await menuCollection.find();
