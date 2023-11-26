@@ -10,7 +10,7 @@ require('dotenv').config();
 // console.log(process.env.DB_PASS);
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.231nuf3.mongodb.net/?retryWrites=true&w=majority`;
-
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 
 
@@ -129,12 +129,20 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/menu/:id', async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) }
-      const result = await menuCollection.findOne(query);
-      res.send(result);
-    })
+   app.get('/menu/:id',async(req,res)=>{
+    const id=req.params.id;
+    console.log(id);
+    const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+
+    if (!isValidObjectId) {
+      console.log('Invalid id:', id);
+      res.status(400).send('Invalid ObjectId');
+      return;
+    }
+    const query={ _id: new ObjectId(id)};
+    const result=await menuCollection.findOne(query);
+    res.send(result);
+   });
 
     app.post('/menu', verifyToken, verifyAdmin, async (req, res) => {
       const item = req.body;
@@ -194,10 +202,11 @@ async function run() {
     });
 
     // payment intent
+     
     app.post('/create-payment-intent', async (req, res) => {
       const { price } = req.body;
       const amount = parseInt(price * 100);
-      console.log(amount, 'amount inside the intent')
+      console.log(amount, 'amount inside the intent');
 
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
