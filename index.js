@@ -32,6 +32,8 @@ async function run() {
     const reviewCollection = client.db("bistroDb").collection("reviews");
     const cartCollection = client.db("bistroDb").collection("carts");
     const userCollection=client.db("bistroDb").collection("users");
+
+    const paymentCollection=client.db("bistroDb").collection("payments");
     
 
 
@@ -235,33 +237,34 @@ async function run() {
 
       //  carefully delete each item from the cart
       console.log('payment info', payment);
+      // jehetu card ay onek id naile _id:new ObjectId diye kora hoito
       const query = {
         _id: {
           $in: payment.cartIds.map(id => new ObjectId(id))
         }
       };
-
+      // jehetu onek gula delete kortesi tai delete many naile delete one hoito
       const deleteResult = await cartCollection.deleteMany(query);
 
-      // send user email about payment confirmation
-      mg.messages
-        .create(process.env.MAIL_SENDING_DOMAIN, {
-          from: "Mailgun Sandbox <postmaster@sandboxbdfffae822db40f6b0ccc96ae1cb28f3.mailgun.org>",
-          to: ["jhankarmahbub7@gmail.com"],
-          subject: "Bistro Boss Order Confirmation",
-          text: "Testing some Mailgun awesomness!",
-          html: `
-            <div>
-              <h2>Thank you for your order</h2>
-              <h4>Your Transaction Id: <strong>${payment.transactionId}</strong></h4>
-              <p>We would like to get your feedback about the food</p>
-            </div>
-          `
-        })
-        .then(msg => console.log(msg)) // logs response data
-        .catch(err => console.log(err)); // logs any error`;
+      // // send user email about payment confirmation
+      // mg.messages
+      //   .create(process.env.MAIL_SENDING_DOMAIN, {
+      //     from: "Mailgun Sandbox <postmaster@sandboxbdfffae822db40f6b0ccc96ae1cb28f3.mailgun.org>",
+      //     to: ["jhankarmahbub7@gmail.com"],
+      //     subject: "Bistro Boss Order Confirmation",
+      //     text: "Testing some Mailgun awesomness!",
+      //     html: `
+      //       <div>
+      //         <h2>Thank you for your order</h2>
+      //         <h4>Your Transaction Id: <strong>${payment.transactionId}</strong></h4>
+      //         <p>We would like to get your feedback about the food</p>
+      //       </div>
+      //     `
+      //   })
+      //   .then(msg => console.log(msg)) // logs response data
+      //   .catch(err => console.log(err)); // logs any error`;
 
-      res.send({ paymentResult, deleteResult });
+      res.send({ paymentResult,deleteResult });
     })
 
     // stats or analytics
